@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quack Attack — Vegas Infinite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#07071A; overflow:hidden;
+  font-family:'DM Sans',system-ui,sans-serif; user-select:none;
+}
+body.scan-active::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:8;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(28,232,192,0.03) 2px,rgba(28,232,192,0.03) 4px);
+  animation:scanline 0.12s linear infinite;
+}
+@keyframes scanline { to { background-position:0 4px; } }
+body.timer-urgent #hud { animation:hud-pulse 0.8s ease-in-out infinite; }
+@keyframes hud-pulse { 50% { border-bottom-color:rgba(255,51,71,0.45); } }
+body.deal-flash::before {
+  content:''; position:fixed; inset:0; background:rgba(245,200,66,0.12);
+  pointer-events:none; z-index:25; animation:deal 0.4s ease-out forwards;
+}
+@keyframes deal { to { opacity:0; } }
+body.rim-pulse #hud { box-shadow:0 0 24px rgba(245,200,66,0.25); }
+#vignette {
+  position:fixed; inset:0; pointer-events:none; z-index:9; opacity:0;
+  transition:opacity 0.15s;
+}
+#vignette.show.mine { opacity:1; box-shadow:inset 0 0 160px 60px rgba(255,80,40,0.75); }
+body.mine-shake canvas { animation:mine-shake 0.45s ease-out; }
+@keyframes mine-shake {
+  0%,100% { transform:translate(0,0); }
+  15% { transform:translate(-6px,4px) rotate(-0.4deg); }
+  30% { transform:translate(8px,-3px) rotate(0.5deg); }
+  45% { transform:translate(-5px,-5px); }
+  60% { transform:translate(6px,2px) rotate(-0.3deg); }
+  75% { transform:translate(-3px,4px); }
+}
+#mine-boom {
+  position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'Bebas Neue',sans-serif; font-size:min(22vw,120px); font-weight:400;
+  color:#FF3347; letter-spacing:0.06em; pointer-events:none; z-index:35;
+  opacity:0; transform:scale(0.3) rotate(-8deg);
+  text-shadow:0 0 40px rgba(255,80,40,0.9), 0 4px 0 #F5C842;
+  transition:opacity 0.08s, transform 0.12s cubic-bezier(0.2,1.4,0.4,1);
+}
+#mine-boom.show { opacity:1; transform:scale(1) rotate(3deg); }
+#vignette.show.win { opacity:1; box-shadow:inset 0 0 100px 30px rgba(245,200,66,0.35); }
+#vignette.show.jackpot { opacity:1; box-shadow:inset 0 0 140px 50px rgba(245,200,66,0.5); }
+.vi-brand {
+  font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:0.35em;
+  color:rgba(28,232,192,0.7); text-transform:uppercase;
+}
+canvas { display:block; width:100%; height:100%; }
+
+#hud-cashout {
+  display:none;
+  align-items:center; gap:5px;
+  margin-left:auto;
+  flex-shrink:0;
+  padding:7px 14px;
+  font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:0.1em;
+  color:#ffe97a;
+  background:radial-gradient(ellipse at 50% 15%,#5c4020 0%,#1a1008 65%,#0a0604 100%);
+  border:2px solid #d4af37; border-radius:8px; cursor:pointer;
+  box-shadow:inset 0 2px 4px rgba(255,220,130,0.25), 0 0 14px rgba(245,200,66,0.2);
+  transition:filter 0.15s, transform 0.08s;
+  -webkit-tap-highlight-color:transparent;
+}
+#hud-cashout:hover:not(:disabled) { filter:brightness(1.1); border-color:#ffe566; }
+#hud-cashout:active:not(:disabled) { transform:scale(0.96); }
+#hud-cashout:disabled { opacity:0.35; cursor:not-allowed; }
+body.game-playing #hud-cashout { display:flex; }
+
+#hud {
+  position:fixed; top:0; left:0; right:0;
+  display:flex; align-items:center; justify-content:flex-start;
+  gap:8px;
+  padding:8px 20px;
+  background:linear-gradient(180deg,rgba(7,7,26,0.96),rgba(7,7,26,0.88));
+  backdrop-filter:blur(12px);
+  border-bottom:2px solid rgba(245,200,66,0.2); z-index:10;
+  height:52px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+.hud-block { display:flex; flex-direction:column; align-items:center; gap:1px; min-width:80px; }
+.hud-label { font-size:9px; letter-spacing:0.2em; color:rgba(255,255,255,0.3); text-transform:uppercase; }
+.hud-val   { font-size:20px; font-weight:700; color:#F5C842; line-height:1; font-variant-numeric:tabular-nums; }
+.hud-val.teal  { color:#1CE8C0; }
+.hud-val.teal.hot { text-shadow:0 0 12px rgba(28,232,192,0.6); animation:hot 1s ease-in-out infinite; }
+@keyframes hot { 50% { transform:scale(1.06); } }
+.hud-val.white { color:#fff; }
+#hearts { display:flex; gap:3px; font-size:15px; }
+
+#timer-wrap {
+  position:fixed; top:52px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center;
+  padding:5px 22px 6px; z-index:11;
+  background:rgba(7,7,26,0.88); backdrop-filter:blur(8px);
+  border-bottom-left-radius:10px; border-bottom-right-radius:10px;
+  border:1px solid rgba(255,255,255,0.08); border-top:none; min-width:90px;
+}
+#timer-label { font-size:9px; letter-spacing:0.2em; color:rgba(255,255,255,0.3); text-transform:uppercase; }
+#timer-val   { font-size:28px; font-weight:700; color:#fff; line-height:1.1; transition:color 0.4s; font-variant-numeric:tabular-nums; }
+#timer-bar-wrap { width:70px; height:3px; background:rgba(255,255,255,0.1); border-radius:2px; margin-top:4px; }
+#timer-bar { height:100%; width:100%; background:#fff; border-radius:2px; transition:background 0.4s,width 0.2s; }
+#timer-wrap.warn { border-color:rgba(245,200,66,0.35); }
+#timer-wrap.danger { border-color:rgba(255,51,71,0.5); animation:timer-pulse 0.6s ease-in-out infinite; }
+@keyframes timer-pulse { 50% { box-shadow:0 0 20px rgba(255,51,71,0.25); } }
+
+#big-count {
+  position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:200px; font-weight:900; color:#FF3347;
+  pointer-events:none; z-index:30; opacity:0; transition:opacity 0.15s;
+  text-shadow:0 0 60px rgba(255,51,71,0.5);
+}
+#big-count.show { opacity:1; }
+
+#loading {
+  position:fixed; inset:0; background:#07071A;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  z-index:100; transition:opacity 0.5s;
+}
+#loading.hidden { opacity:0; pointer-events:none; }
+.duck-spin { font-size:52px; animation:spin 1.4s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.load-label { color:#F5C842; font-size:12px; letter-spacing:0.18em; text-transform:uppercase; }
+.load-bar-wrap { width:160px; height:3px; background:rgba(245,200,66,0.15); border-radius:2px; overflow:hidden; }
+.load-bar { height:100%; width:0%; background:#F5C842; transition:width 0.2s; }
+
+#overlay {
+  position:fixed; inset:0; background:rgba(7,7,26,0.9);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  z-index:50; transition:opacity 0.4s;
+}
+#overlay.hidden { opacity:0; pointer-events:none; }
+#overlay h1, #overlay-title {
+  font-family:'Bebas Neue',sans-serif; font-size:42px; color:#F5C842;
+  letter-spacing:0.08em; text-align:center; text-shadow:0 0 40px rgba(245,200,66,0.35);
+}
+.table-stakes {
+  display:flex; flex-direction:column; align-items:center; gap:8px; width:min(340px,92vw);
+}
+.stakes-label { font-size:10px; letter-spacing:0.2em; color:rgba(255,255,255,0.35); text-transform:uppercase; }
+#stakes-tag { font-size:11px; color:rgba(28,232,192,0.7); text-align:center; }
+.stake-btns { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+.stake-btn {
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.15);
+  color:rgba(255,255,255,0.75); font-size:11px; padding:8px 12px; border-radius:8px;
+  cursor:pointer; font-family:inherit; transition:all 0.15s;
+}
+.stake-btn:hover { border-color:rgba(245,200,66,0.5); color:#F5C842; }
+.stake-btn.active {
+  background:rgba(245,200,66,0.15); border-color:#F5C842; color:#F5C842;
+  box-shadow:0 0 16px rgba(245,200,66,0.2);
+}
+.table-stakes.hidden { display:none; }
+#overlay-desc { font-size:14px; color:rgba(255,255,255,0.55); text-align:center; max-width:320px; line-height:1.6; }
+#overlay-hint { font-size:12px; color:rgba(255,255,255,0.3); text-align:center; max-width:300px; }
+#overlay-hint.hidden, #overlay-stats.hidden, #coffee-broke-tip.hidden { display:none; }
+.overlay-stats {
+  display:flex; flex-direction:column; gap:8px; width:min(280px,90vw);
+  padding:14px 18px; background:rgba(255,255,255,0.04);
+  border:1px solid rgba(245,200,66,0.2); border-radius:10px;
+}
+.stat-row { display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:13px; }
+.stat-label { color:rgba(255,255,255,0.4); }
+.stat-val { color:#F5C842; font-weight:700; }
+.play-btn {
+  margin-top:8px; background:rgba(245,200,66,0.12);
+  border:1px solid rgba(245,200,66,0.6); color:#F5C842;
+  font-size:13px; letter-spacing:0.12em; text-transform:uppercase;
+  padding:10px 28px; border-radius:8px; cursor:pointer; transition:background 0.15s;
+}
+.play-btn:hover { background:rgba(245,200,66,0.25); }
+
+#coffee-wrap {
+  position:fixed; inset:0; background:rgba(4,4,20,0.93);
+  display:flex; align-items:center; justify-content:center;
+  z-index:60; opacity:0; pointer-events:none; transition:opacity 0.35s;
+}
+#coffee-wrap.show { opacity:1; pointer-events:all; }
+#coffee-modal {
+  background:linear-gradient(160deg,#12122e,#0a0a1e); border:2px solid rgba(245,200,66,0.4);
+  border-radius:16px; padding:28px 32px; max-width:520px; width:90%;
+  box-shadow:0 0 60px rgba(245,200,66,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+#coffee-modal h2 {
+  font-family:'Bebas Neue',sans-serif; font-size:28px; color:#F5C842;
+  letter-spacing:0.08em; margin-bottom:4px; text-align:center;
+}
+#coffee-modal .sub { font-size:11px; color:rgba(255,255,255,0.35); text-align:center; letter-spacing:0.1em; margin-bottom:16px; }
+#coffee-modal .budget { text-align:center; font-size:15px; color:#1CE8C0; margin-bottom:16px; font-weight:600; }
+.shop-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.shop-item {
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px; padding:12px 14px; cursor:pointer;
+  transition:background 0.15s, border-color 0.15s;
+  display:flex; flex-direction:column; gap:3px; align-items:flex-start;
+  font:inherit; color:inherit; text-align:left; width:100%;
+}
+.shop-item:hover:not(.disabled):not(.purchased) { background:rgba(245,200,66,0.1); border-color:rgba(245,200,66,0.5); }
+.shop-item.disabled { opacity:0.32; cursor:not-allowed; }
+.shop-item.purchased { background:rgba(28,232,192,0.08); border-color:rgba(28,232,192,0.45); cursor:default; }
+.item-icon { font-size:22px; }
+.item-name { font-size:13px; font-weight:600; color:#fff; }
+.item-desc { font-size:11px; color:rgba(255,255,255,0.4); line-height:1.4; }
+.item-cost { font-size:12px; color:#F5C842; font-weight:600; margin-top:2px; }
+.item-cost.free-tag { color:#8B5CF6; }
+#coffee-resume {
+  width:100%; padding:11px; background:rgba(245,200,66,0.15);
+  border:1px solid rgba(245,200,66,0.6); color:#F5C842;
+  font-size:13px; letter-spacing:0.12em; text-transform:uppercase;
+  border-radius:8px; cursor:pointer; transition:background 0.15s;
+}
+#coffee-resume:hover { background:rgba(245,200,66,0.28); }
+#coffee-note { font-size:11px; color:rgba(255,255,255,0.25); text-align:center; margin-top:8px; }
+#coffee-broke-tip {
+  font-size:12px; color:#1CE8C0; text-align:center; margin-bottom:12px;
+  padding:8px 10px; background:rgba(28,232,192,0.08); border-radius:8px;
+  border:1px solid rgba(28,232,192,0.25); line-height:1.45;
+}
+
+#controls-dock {
+  position:fixed;
+  bottom:max(12px, env(safe-area-inset-bottom, 12px));
+  left:50%; transform:translateX(-50%);
+  display:flex; align-items:stretch; gap:6px;
+  padding:8px 10px;
+  background:linear-gradient(180deg,rgba(12,12,32,0.92),rgba(7,7,26,0.96));
+  border:1px solid rgba(245,200,66,0.28);
+  border-radius:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+  z-index:11;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.4s;
+}
+#controls-dock.visible { opacity:1; pointer-events:all; }
+#controls-dock::before {
+  content:'TABLE CONTROLS';
+  position:absolute; top:-18px; left:50%; transform:translateX(-50%);
+  font-size:8px; letter-spacing:0.22em; color:rgba(245,200,66,0.45);
+  white-space:nowrap;
+}
+
+#dpad {
+  display:grid; grid-template-columns:48px 48px 48px; grid-template-rows:48px 48px 48px;
+  gap:4px;
+}
+.dpad-btn {
+  background:radial-gradient(circle at 35% 30%,rgba(60,50,30,0.5),rgba(20,18,40,0.9));
+  border:1px solid rgba(245,200,66,0.45);
+  color:#F5C842; font-size:20px; border-radius:8px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 6px rgba(0,0,0,0.35);
+  transition:background 0.1s, box-shadow 0.1s, transform 0.08s;
+  -webkit-tap-highlight-color:transparent;
+}
+.dpad-btn:hover { border-color:rgba(245,200,66,0.75); box-shadow:0 0 10px rgba(245,200,66,0.2); }
+.dpad-btn:active { background:rgba(245,200,66,0.25); transform:scale(0.94); }
+.dpad-empty { background:transparent; border:none; pointer-events:none; box-shadow:none; }
+
+#cashout-btn {
+  min-width:54px; padding:4px 6px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  font-family:'Bebas Neue',sans-serif;
+  background:radial-gradient(ellipse at 50% 15%,#5c4020 0%,#1a1008 65%,#0a0604 100%);
+  border:2px solid #d4af37;
+  border-radius:10px;
+  cursor:pointer;
+  color:#ffe97a;
+  text-shadow:0 1px 3px rgba(0,0,0,0.9);
+  box-shadow:
+    inset 0 2px 5px rgba(255,220,130,0.3),
+    inset 0 -4px 8px rgba(0,0,0,0.55),
+    0 0 18px rgba(245,200,66,0.2);
+  transition:transform 0.08s, box-shadow 0.15s, filter 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+#cashout-btn .cashout-icon { font-size:17px; line-height:1; filter:drop-shadow(0 0 6px rgba(245,200,66,0.5)); }
+#cashout-btn .cashout-line { font-size:15px; line-height:0.92; letter-spacing:0.08em; }
+#cashout-btn:hover:not(:disabled) {
+  border-color:#ffe566;
+  box-shadow:inset 0 2px 6px rgba(255,230,150,0.35), 0 0 24px rgba(245,200,66,0.45);
+  filter:brightness(1.08);
+}
+#cashout-btn:active:not(:disabled) { transform:scale(0.94); }
+#cashout-btn:disabled { opacity:0.35; cursor:not-allowed; filter:grayscale(0.5); }
+
+#toast {
+  position:fixed; top:130px; left:50%; transform:translateX(-50%);
+  font-size:22px; font-weight:700; letter-spacing:0.05em;
+  pointer-events:none; z-index:20; opacity:0; transition:opacity 0.2s;
+  text-shadow:0 0 24px currentColor; white-space:nowrap;
+}
+#toast.show { opacity:1; }
+
+#powerup-bar {
+  position:fixed; bottom:20px; right:20px;
+  display:flex; flex-direction:column; gap:6px; z-index:10;
+  align-items:flex-end;
+}
+.pu-badge {
+  background:rgba(7,7,26,0.9); border-radius:20px; padding:5px 12px;
+  font-size:12px; font-weight:600; border:1px solid rgba(255,255,255,0.12);
+  opacity:0; transition:opacity 0.3s, transform 0.3s;
+  transform:translateX(10px);
+}
+.pu-badge.active { opacity:1; transform:translateX(0); }
+.pu-badge.shield { color:#8B5CF6; border-color:rgba(139,92,246,0.5); }
+.pu-badge.magnet { color:#1CE8C0; border-color:rgba(28,232,192,0.5); }
+.pu-badge.scan   { color:#FF8800; border-color:rgba(255,136,0,0.5); }
+
+#legend { max-width:168px; }
+
+@media (max-width: 720px), (max-height: 720px) {
+  #hud { padding:8px 10px; height:48px; }
+  .hud-block { min-width:62px; }
+  .hud-val { font-size:17px; }
+  #timer-wrap { top:48px; padding:4px 16px 5px; }
+  #timer-val { font-size:24px; }
+  #big-count { font-size:min(42vw, 140px); }
+  #overlay h1, #overlay-title { font-size:26px; }
+  #legend {
+    bottom:auto; top:108px; left:8px; gap:4px;
+    background:rgba(7,7,26,0.75); padding:8px 10px; border-radius:8px;
+  }
+  #powerup-bar {
+    bottom:auto; top:108px; right:8px;
+  }
+  #controls-dock {
+    bottom:max(10px, env(safe-area-inset-bottom, 10px));
+    transform:translateX(-50%) scale(0.92);
+    padding:6px 8px; gap:5px;
+  }
+  #dpad { grid-template-columns:44px 44px 44px; grid-template-rows:44px 44px 44px; gap:3px; }
+  .dpad-btn { font-size:18px; border-radius:7px; }
+  #cashout-btn { min-width:48px; }
+  #cashout-btn .cashout-line { font-size:13px; }
+  #toast { top:118px; font-size:18px; max-width:90vw; white-space:normal; text-align:center; }
+  #coffee-modal { padding:20px 18px; max-height:90vh; overflow-y:auto; }
+  body.game-playing #hud-cashout { display:none !important; }
+}
+
+@media (min-width: 721px) {
+  #controls-dock { display:none !important; }
+  body.game-playing #hud-cashout { display:flex !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="vignette" aria-hidden="true"></div>
+<div id="mine-boom" aria-hidden="true"></div>
+
+<div id="timer-wrap">
+  <div id="timer-label">Clock</div>
+  <div id="timer-val">60</div>
+  <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+</div>
+
+<div id="big-count"></div>
+
+<div id="coffee-wrap">
+  <div id="coffee-modal">
+    <h2>☕ HIGH ROLLER LOUNGE</h2>
+    <div class="sub">PIT STOP · SPEND YOUR CHIPS WISELY</div>
+    <div class="budget">Stack: <span id="cb-budget">$0</span></div>
+    <p id="coffee-broke-tip" class="hidden"></p>
+    <div class="shop-grid" id="shop-grid"></div>
+    <button id="coffee-resume">▶ BACK TO THE FELT</button>
+    <div id="coffee-note">Clock is paused — take your time</div>
+  </div>
+</div>
+
+<div id="hud">
+  <div class="hud-block">
+    <div class="hud-label">Chips</div>
+    <div class="hud-val" id="hud-coins">$0</div>
+  </div>
+  <div class="hud-block">
+    <div class="hud-label">Buy-ins</div>
+    <div id="hearts">🟡🟡🟡</div>
+  </div>
+  <div class="hud-block">
+    <div class="hud-label">Hot streak</div>
+    <div class="hud-val teal" id="hud-multi">×1</div>
+  </div>
+  <div class="hud-block">
+    <div class="hud-label">Hand</div>
+    <div class="hud-val white" id="hud-round">1</div>
+  </div>
+  <button type="button" id="hud-cashout" aria-label="Cash out and end this hand">🏛 CASH OUT</button>
+</div>
+
+<div id="loading">
+  <div class="duck-spin">🦆</div>
+  <div class="load-label">Opening the floor…</div>
+  <div class="load-bar-wrap"><div class="load-bar" id="load-bar"></div></div>
+</div>
+
+<div id="overlay">
+  <p class="vi-brand">Vegas Infinite · Original</p>
+  <div class="overlay-emoji" aria-hidden="true">🦆</div>
+  <h1 id="overlay-title">QUACK ATTACK</h1>
+  <p id="overlay-desc">Rake chips on the felt, dodge house traps, cash out at the VIP cage.<br>At 30s the pit boss sends you to the High Roller Lounge.</p>
+  <div id="table-stakes" class="table-stakes">
+    <div class="stakes-label">Choose your table</div>
+    <div class="stake-btns">
+      <button type="button" class="stake-btn" data-risk="low">Penny</button>
+      <button type="button" class="stake-btn active" data-risk="standard">Main Floor</button>
+      <button type="button" class="stake-btn" data-risk="high">High Roller</button>
+    </div>
+    <p id="stakes-tag">$100 ante · standard odds</p>
+  </div>
+  <p id="overlay-hint">Arrow keys / WASD · touch d-pad on mobile</p>
+  <div id="overlay-stats" class="overlay-stats hidden"></div>
+  <button class="play-btn" id="play-btn">▶ TAKE A SEAT</button>
+</div>
+
+<div id="powerup-bar">
+  <div class="pu-badge shield" id="badge-shield">🛡 Insurance</div>
+  <div class="pu-badge magnet" id="badge-magnet">🧲 Chip rake</div>
+  <div class="pu-badge scan" id="badge-scan">👁 Pit scan</div>
+</div>
+
+<div id="toast"></div>
+
+<div id="legend" style="position:fixed;bottom:20px;left:20px;z-index:10;display:flex;flex-direction:column;gap:5px;opacity:0;transition:opacity 0.4s;">
+  <div style="font-size:9px;letter-spacing:0.15em;color:rgba(255,255,255,0.25);text-transform:uppercase;margin-bottom:2px">Floor guide</div>
+  <div style="display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,0.45)"><span style="display:inline-block;width:12px;height:10px;border-radius:50%;background:#F5C842"></span> Chips</div>
+  <div style="display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,0.45)"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#FF3347;opacity:0.5"></span> House trap</div>
+  <div style="display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,0.45)"><span style="display:inline-block;width:10px;height:10px;background:#8B5CF6;transform:rotate(45deg)"></span> Hot streak gem</div>
+  <div style="display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,0.45)"><span style="display:inline-block;width:12px;height:6px;border:2px solid #1CE8C0;border-radius:50%"></span> Wild draw</div>
+  <div style="display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,0.45)"><span style="display:inline-block;width:8px;height:14px;background:#FFE066;border-radius:1px"></span> VIP cage</div>
+</div>
+
+<div id="controls-dock">
+  <div id="dpad">
+  <div class="dpad-empty"></div>
+  <div class="dpad-btn" data-dir="up">▲</div>
+  <div class="dpad-empty"></div>
+  <div class="dpad-btn" data-dir="left">◀</div>
+  <div class="dpad-empty"></div>
+  <div class="dpad-btn" data-dir="right">▶</div>
+  <div class="dpad-empty"></div>
+    <div class="dpad-btn" data-dir="down">▼</div>
+    <div class="dpad-empty"></div>
+  </div>
+  <button type="button" id="cashout-btn" aria-label="Cash out and end this hand">
+    <span class="cashout-icon" aria-hidden="true">🏛</span>
+    <span class="cashout-line">CASH</span>
+    <span class="cashout-line">OUT</span>
+  </button>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"}}
+</script>
+<script type="module" src="dist/main.js"></script>
+</body>
+</html>
