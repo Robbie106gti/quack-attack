@@ -1,5 +1,5 @@
 # Quack Attack — Cursor Handoff Report
-> Vegas Infinite Game Jam submission · Built with Three.js · Modular static site
+> Vegas Infinite Game Jam submission · Built with Three.js · Vite
 
 ---
 
@@ -7,7 +7,7 @@
 
 **Quack Attack** is a browser-based 3D casino original built in Three.js for the Vegas Infinite Game Jam. The player controls the VI Ducky mascot on a 9×9 neon-lit casino floor, collecting coins, avoiding hidden landmines, and racing to the golden exit tile before time runs out. At the 30-second mark a "Coffee Break" pause menu lets the player spend coins on power-ups.
 
-**Current deliverable:** TypeScript sources in `src/`, compiled to `dist/` via `tsc`, plus `index.html` shell and `public/duck.glb` (~848KB). Serve the repo root with any static host (Vercel recommended).
+**Current deliverable:** TypeScript in `src/`, bundled with **Vite** into `dist/`, plus `index.html`, `styles/`, and `public/duck.glb` (~848KB).
 
 ---
 
@@ -15,14 +15,14 @@
 
 | Layer | Choice |
 |---|---|
-| 3D engine | Three.js `r0.162.0` via CDN importmap |
+| 3D engine | Three.js `r0.162.0` (npm, bundled by Vite) |
 | Model loader | `GLTFLoader` (Three.js addon) |
 | Audio | Web Audio API (procedural, no audio files) |
-| Deployment target | Vercel (static HTML) |
-| Duck model | `public/duck.glb` |
-| Language | TypeScript (strict), compiled with `tsc` |
+| Build / dev | **Vite 6** |
+| Deployment | Vercel (`dist/` output) |
+| Duck model | `public/duck.glb` → `/duck.glb` |
+| Language | TypeScript (strict), `tsc --noEmit` for typecheck |
 | Linting | ESLint 9 + typescript-eslint |
-| Framework | Vanilla ES modules, no bundler |
 
 ---
 
@@ -30,47 +30,49 @@
 
 ```
 quack-attack/
-├── index.html              # Shell — HUD, modals, importmap
+├── index.html              # Vite entry HTML
+├── vite.config.ts
+├── styles/                 # Modular CSS (imported from index.html)
 ├── public/
-│   └── duck.glb            # Rubber duck GLB (extracted from monolith)
-├── src/                    # TypeScript sources
-│   ├── main.ts             # Scene setup, renderer, camera, lights, animate loop
-│   ├── state.ts            # Shared mutable game/scene state
-│   ├── types.ts            # GameState, Direction, ShopItem, etc.
-│   ├── dom.ts              # Typed DOM helpers
+│   └── duck.glb
+├── src/
+│   ├── main.ts             # Entry — scene loop, wires modules
+│   ├── state.ts, types.ts, dom.ts, helpers.ts
 │   ├── grid.ts, duck.ts, game.ts, timer.ts, coffee.ts
-│   ├── audio.ts, hud.ts, constants.ts
-├── dist/                   # tsc output (gitignored)
-├── quack_attack_monolith.html  # Original 1.1MB single-file backup
-└── QUACK_ATTACK_CURSOR.md  # This file
+│   ├── audio.ts, hud.ts, fx.ts, camera.ts, input.ts
+│   └── scene-setup.ts
+├── dist/                   # Vite production build (gitignored)
+└── quack_attack_monolith.html  # Legacy single-file backup (not used at runtime)
 ```
 
 ---
 
 ## Local Development
 
+**Use Vite only** — do not run `npx serve` on the repo root (that serves raw `.ts` without bundling).
+
 ```bash
 npm install
-npm run build      # compile src/ → dist/
-npm run watch      # recompile on save (optional, second terminal)
-npx serve .        # open http://localhost:3000
+npm run dev        # or: npm start — http://localhost:3456
+npm run build      # production bundle → dist/
+npm run preview    # serve dist/ via Vite (http://localhost:3456)
 ```
 
 Other scripts: `npm run lint`, `npm run lint:fix`, `npm run typecheck`.
-
-ES modules require a static server (not `file://`). `index.html` loads `dist/main.js`.
 
 ---
 
 ## Vercel Deployment
 
-Push to GitHub and connect to Vercel. The `public/` folder is served at `/` automatically, so `duck.glb` loads from `/duck.glb` via `import.meta.url` in `src/duck.js`.
+`vercel.json` runs `npm run build` and publishes **`dist/`** (not the repo root).
+
+`public/duck.glb` is copied into `dist/duck.glb` at build time. The game loads it from `/duck.glb`.
 
 ---
 
 ## Core Constants
 
-See `src/constants.js` for `COLS`, `ROWS`, `TILE`, `ROUNDS`, `C`, timing values.
+See `src/constants.ts` for `COLS`, `ROWS`, `TILE`, `ROUNDS`, `C`, timing values.
 
 ---
 
