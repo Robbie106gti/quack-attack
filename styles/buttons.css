@@ -1,0 +1,71 @@
+/* Shared casino UI buttons */
+.btn-gold-outline {
+  background: rgba(245, 200, 66, 0.12);
+  border: 1px solid rgba(245, 200, 66, 0.6);
+  color: var(--gold);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+
+.btn-gold-outline:hover {
+  background: rgba(245, 200, 66, 0.25);
+}
+
+.btn-cashout {
+  font-family: var(--font-display);
+  color: var(--gold-bright);
+  background: var(--cashout-gradient);
+  border: 2px solid var(--gold-border);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: var(--cashout-shadow);
+  transition:
+    filter 0.15s,
+    transform 0.08s,
+    box-shadow 0.15s,
+    border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-cashout:hover:not(:disabled) {
+  filter: brightness(1.1);
+  border-color: #ffe566;
+}
+
+.btn-cashout:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.btn-cashout:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.stake-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 11px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.stake-btn:hover {
+  border-color: rgba(245, 200, 66, 0.5);
+  color: var(--gold);
+}
+
+.stake-btn.active {
+  background: rgba(245, 200, 66, 0.15);
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 16px rgba(245, 200, 66, 0.2);
+}

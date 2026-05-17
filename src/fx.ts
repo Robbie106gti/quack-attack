@@ -10,6 +10,10 @@ interface Particle {
 
 const particles: Particle[] = [];
 
+function addParticle(mesh: THREE.Mesh, vel: THREE.Vector3, life: number): void {
+  particles.push({ mesh, vel, life });
+}
+
 let screenShakeT = 0;
 let screenShakeMag = 0;
 
@@ -31,7 +35,7 @@ export function applyScreenShake(camera: PerspectiveCamera, dt: number): void {
   camera.position.z += (Math.random() - 0.5) * m;
 }
 
-export function showBoomFlash(x: number, z: number): void {
+export function showBoomFlash(): void {
   const el = document.getElementById('mine-boom');
   if (!el) return;
   el.textContent = SILLY_BOOM_WORDS[Math.floor(Math.random() * SILLY_BOOM_WORDS.length)];
@@ -41,8 +45,6 @@ export function showBoomFlash(x: number, z: number): void {
     el.classList.remove('show');
     document.body.classList.remove('mine-shake');
   }, 520);
-  void x;
-  void z;
 }
 
 export function spawnChipBurst(scene: THREE.Scene, x: number, z: number, count = 10): void {
@@ -63,11 +65,11 @@ export function spawnChipBurst(scene: THREE.Scene, x: number, z: number, count =
     scene.add(mesh);
     const angle = Math.random() * Math.PI * 2;
     const speed = 1.2 + Math.random() * 2;
-    particles.push({
+    addParticle(
       mesh,
-      vel: new THREE.Vector3(Math.cos(angle) * speed, 2 + Math.random() * 2, Math.sin(angle) * speed),
-      life: 0.55 + Math.random() * 0.25,
-    });
+      new THREE.Vector3(Math.cos(angle) * speed, 2 + Math.random() * 2, Math.sin(angle) * speed),
+      0.55 + Math.random() * 0.25
+    );
   }
 }
 

@@ -237,7 +237,7 @@ export function spawnPickups(): void {
   }
 }
 
-export function buildGrid(): void {
+export function clearBoardMeshes(): void {
   state.tileObjects.forEach((m) => state.scene.remove(m));
   state.tileObjects = [];
   state.coinObjects.forEach((o) => {
@@ -261,7 +261,10 @@ export function buildGrid(): void {
   state.scene.children
     .filter((c) => (c.userData as TileUserData).isBg)
     .forEach((c) => state.scene.remove(c));
+}
 
+export function buildGrid(): void {
+  clearBoardMeshes();
   state.grid = Array.from({ length: ROWS }, () => Array(COLS).fill(TILE.EMPTY));
   const cfg = ROUNDS[Math.min(state.roundIdx, ROUNDS.length - 1)];
   const stakes = TABLE_STAKES[state.tableRisk];

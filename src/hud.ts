@@ -2,6 +2,9 @@ import { ROUND_TIME, TABLE_STAKES } from './constants.js';
 import type { TableRisk } from './types.js';
 import { $ } from './dom.js';
 import { state } from './state.js';
+import { formatMoney } from './helpers.js';
+
+const CASHOUT_IDS = ['cashout-btn', 'hud-cashout'] as const;
 
 export interface EndStats {
   coins: number;
@@ -13,7 +16,7 @@ export interface EndStats {
 
 function renderStatRows(stats: EndStats): string {
   const rows: [string, string][] = [
-    ['Cash out', '$' + stats.coins.toLocaleString()],
+    ['Cash out', formatMoney(stats.coins)],
     ['Hands played', String(stats.round)],
     ['Best hot streak', '×' + stats.multiplier],
     ['Buy-ins left', String(stats.lives)],
@@ -41,8 +44,14 @@ export function initTableStakes(): void {
   });
 }
 
+export function setCashOutEnabled(enabled: boolean): void {
+  for (const id of CASHOUT_IDS) {
+    ($(id) as HTMLButtonElement).disabled = !enabled;
+  }
+}
+
 export function updateHUD(): void {
-  $('hud-coins').textContent = '$' + state.coins.toLocaleString();
+  $('hud-coins').textContent = formatMoney(state.coins);
   const multiEl = $('hud-multi');
   multiEl.textContent = '×' + state.multiplier;
   multiEl.classList.toggle('hot', state.multiplier > 1);

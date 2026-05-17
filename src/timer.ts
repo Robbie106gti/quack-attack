@@ -9,6 +9,25 @@ import { endTimeout } from './game.js';
 
 let lastWall = 0;
 
+function tickPowerUps(dt: number): void {
+  if (state.magnetActive) {
+    state.magnetTimer -= dt;
+    if (state.magnetTimer <= 0) {
+      state.magnetActive = false;
+      updateBadges();
+      showToast('🧲 Chip rake off', 0x1ce8c0);
+    }
+  }
+  if (state.scanActive) {
+    state.scanTimer -= dt;
+    if (state.scanTimer <= 0) {
+      state.scanActive = false;
+      updateBadges();
+      revealMines(false);
+    }
+  }
+}
+
 export function updateTimer(dt: number, t: number): void {
   if (state.gameState !== 'playing') return;
 
@@ -21,23 +40,7 @@ export function updateTimer(dt: number, t: number): void {
     setTimeout(openCoffee, 300);
   }
 
-  if (state.magnetActive) {
-    state.magnetTimer -= dt;
-    if (state.magnetTimer <= 0) {
-      state.magnetActive = false;
-      updateBadges();
-      showToast('🧲 Chip rake off', 0x1ce8c0);
-    }
-  }
-
-  if (state.scanActive) {
-    state.scanTimer -= dt;
-    if (state.scanTimer <= 0) {
-      state.scanActive = false;
-      updateBadges();
-      revealMines(false);
-    }
-  }
+  tickPowerUps(dt);
 
   const urgency = Math.max(0, 1 - state.timeLeft / ROUND_TIME);
   state.tickInterval = state.timeLeft > 10 ? 2.0 : state.timeLeft > 5 ? 0.5 : 0.25;

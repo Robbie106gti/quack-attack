@@ -5,6 +5,7 @@ import { state } from './state.js';
 import { revealMines, clearMines } from './grid.js';
 import { playJingle } from './audio.js';
 import { updateHUD, updateTimerHUD, updateBadges, showToast } from './hud.js';
+import { formatMoney } from './helpers.js';
 
 export const SHOP: readonly ShopItem[] = [
   {
@@ -40,6 +41,58 @@ export const SHOP: readonly ShopItem[] = [
   },
 ];
 
+type ShopHandler = (item: ShopItem) => void;
+
+const SHOP_HANDLERS: Record<ShopItem['id'], ShopHandler> = {
+  scan: () => {
+    state.scanActive = true;
+    state.scanTimer = 8;
+    revealMines(true);
+    updateBadges();
+    showToast('📡 Pit scan live!', 0xff8800);
+  },
+  shield: () => {
+    state.shieldActive = true;
+    updateBadges();
+    showToast('🛡 Insurance armed!', C.purple);
+  },
+  magnet: () => {
+    state.magnetActive = true;
+    state.magnetTimer = 10;
+    updateBadges();
+    showToast('🧲 Chip rake on!', C.teal);
+  },
+  time: () => {
+    state.timeLeft = Math.min(state.timeLeft + 15, ROUND_TIME);
+    updateTimerHUD();
+    showToast('⏱ +15 on the clock!', C.gold);
+  },
+  clear: () => {
+    clearMines(2);
+    showToast('💣 Traps cleared!', C.green);
+  },
+  double: () => {
+    if (state.coins <= 0) {
+      state.timeLeft = Math.min(state.timeLeft + 10, ROUND_TIME);
+      updateTimerHUD();
+      showToast('🎲 Push — +10 seconds!', C.gold);
+      return;
+    }
+    if (Math.random() < 0.5) {
+      state.coins = Math.floor(state.coins * 2);
+      showToast('🎲 DOUBLE DOWN! 🤑', C.gold);
+    } else {
+      state.coins = Math.floor(state.coins * 0.5);
+      showToast('🎲 HOUSE WINS HALF', C.red);
+    }
+    updateHUD();
+  },
+};
+
+function refreshBudget(): void {
+  $('cb-budget').textContent = formatMoney(state.coins);
+}
+
 export function openCoffee(): void {
   state.gameState = 'coffee';
   playJingle();
@@ -50,17 +103,15 @@ export function openCoffee(): void {
     state.coins += COFFEE_STIPEND;
     updateHUD();
     brokeTip.textContent =
-      '☕ Complimentary $' +
-      COFFEE_STIPEND.toLocaleString() +
-      ' house chips — pick a lounge perk!';
+      '☕ Complimentary ' + formatMoney(COFFEE_STIPEND) + ' house chips — pick a lounge perk!';
     brokeTip.classList.remove('hidden');
-    showToast('☕ House chips +$' + COFFEE_STIPEND + '!', C.gold);
+    showToast('☕ House chips ' + formatMoney(COFFEE_STIPEND) + '!', C.gold);
   } else {
     brokeTip.classList.add('hidden');
   }
 
   renderShop();
-  $('cb-budget').textContent = '$' + state.coins.toLocaleString();
+  refreshBudget();
   $('coffee-wrap').classList.add('show');
 }
 
@@ -88,12 +139,12 @@ export function renderShop(): void {
       '</span><span class="item-cost' +
       (item.free ? ' free-tag' : '') +
       '">' +
-      (bought ? '✓ Claimed' : item.free ? 'FREE' : '$' + item.cost.toLocaleString()) +
+      (bought ? '✓ Claimed' : item.free ? 'FREE' : formatMoney(item.cost)) +
       '</span>';
     if (!bought && !cantAfford) btn.addEventListener('click', () => buyItem(item));
     g.appendChild(btn);
   });
-  $('cb-budget').textContent = '$' + state.coins.toLocaleString();
+  refreshBudget();
 }
 
 export function buyItem(item: ShopItem): void {
@@ -104,42 +155,7 @@ export function buyItem(item: ShopItem): void {
     updateHUD();
   }
   state.purchasedItems.add(item.id);
-  if (item.id === 'scan') {
-    state.scanActive = true;
-    state.scanTimer = 8;
-    revealMines(true);
-    updateBadges();
-    showToast('📡 Pit scan live!', 0xff8800);
-  } else if (item.id === 'shield') {
-    state.shieldActive = true;
-    updateBadges();
-    showToast('🛡 Insurance armed!', C.purple);
-  } else if (item.id === 'magnet') {
-    state.magnetActive = true;
-    state.magnetTimer = 10;
-    updateBadges();
-    showToast('🧲 Chip rake on!', C.teal);
-  } else if (item.id === 'time') {
-    state.timeLeft = Math.min(state.timeLeft + 15, ROUND_TIME);
-    updateTimerHUD();
-    showToast('⏱ +15 on the clock!', C.gold);
-  } else if (item.id === 'clear') {
-    clearMines(2);
-    showToast('💣 Traps cleared!', C.green);
-  } else if (item.id === 'double') {
-    if (state.coins <= 0) {
-      state.timeLeft = Math.min(state.timeLeft + 10, ROUND_TIME);
-      updateTimerHUD();
-      showToast('🎲 Push — +10 seconds!', C.gold);
-    } else if (Math.random() < 0.5) {
-      state.coins = Math.floor(state.coins * 2);
-      showToast('🎲 DOUBLE DOWN! 🤑', C.gold);
-    } else {
-      state.coins = Math.floor(state.coins * 0.5);
-      showToast('🎲 HOUSE WINS HALF', C.red);
-    }
-    updateHUD();
-  }
+  SHOP_HANDLERS[item.id](item);
   renderShop();
 }
 

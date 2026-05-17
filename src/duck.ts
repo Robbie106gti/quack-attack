@@ -3,7 +3,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { $ } from './dom.js';
 import { state } from './state.js';
 
-const DUCK_URL = new URL('../public/duck.glb', import.meta.url).href;
+/** Served from `public/` (Vite copies to build root). */
+const DUCK_URL = '/duck.glb';
 
 export function loadDuck(onReady?: () => void): void {
   const loader = new GLTFLoader();

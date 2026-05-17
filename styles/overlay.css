@@ -1,0 +1,164 @@
+#loading {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  z-index: var(--z-loading);
+  transition: opacity 0.5s;
+}
+
+#loading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.duck-spin {
+  font-size: 52px;
+  animation: spin 1.4s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.load-label {
+  color: var(--gold);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.load-bar-wrap {
+  width: 160px;
+  height: 3px;
+  background: rgba(245, 200, 66, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.load-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--gold);
+  transition: width 0.2s;
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 7, 26, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  z-index: var(--z-overlay);
+  transition: opacity 0.4s;
+}
+
+#overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#overlay h1,
+#overlay-title {
+  font-family: var(--font-display);
+  font-size: 42px;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-shadow: 0 0 40px var(--gold-glow);
+}
+
+.table-stakes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: min(340px, 92vw);
+}
+
+.table-stakes.hidden {
+  display: none;
+}
+
+.stakes-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+
+#stakes-tag {
+  font-size: 11px;
+  color: rgba(28, 232, 192, 0.7);
+  text-align: center;
+}
+
+.stake-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+#overlay-desc {
+  font-size: 14px;
+  color: var(--text-body);
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+#overlay-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 300px;
+}
+
+#overlay-hint.hidden,
+#overlay-stats.hidden,
+#coffee-broke-tip.hidden {
+  display: none;
+}
+
+.overlay-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(280px, 90vw);
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-gold);
+  border-radius: 10px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.stat-val {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.play-btn {
+  margin-top: 8px;
+  padding: 10px 28px;
+}

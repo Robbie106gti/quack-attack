@@ -1,0 +1,104 @@
+@media (max-width: 720px), (max-height: 720px) {
+  :root {
+    --hud-height: var(--hud-height-mobile);
+  }
+
+  #hud {
+    padding: 8px 10px;
+  }
+
+  .hud-block {
+    min-width: 62px;
+  }
+
+  .hud-val {
+    font-size: 17px;
+  }
+
+  #timer-wrap {
+    padding: 4px 16px 5px;
+  }
+
+  #timer-val {
+    font-size: 24px;
+  }
+
+  #big-count {
+    font-size: min(42vw, 140px);
+  }
+
+  #overlay h1,
+  #overlay-title {
+    font-size: 26px;
+  }
+
+  #legend {
+    bottom: auto;
+    top: 108px;
+    left: 8px;
+    gap: 4px;
+    background: rgba(7, 7, 26, 0.75);
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+
+  #powerup-bar {
+    bottom: auto;
+    top: 108px;
+    right: 8px;
+  }
+
+  #controls-dock {
+    bottom: var(--safe-bottom-mobile);
+    transform: translateX(-50%) scale(0.92);
+    padding: 6px 8px;
+    gap: 5px;
+  }
+
+  #dpad {
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(3, 44px);
+    gap: 3px;
+  }
+
+  .dpad-btn {
+    font-size: 18px;
+    border-radius: 7px;
+  }
+
+  #cashout-btn {
+    min-width: 48px;
+  }
+
+  #cashout-btn .cashout-line {
+    font-size: 13px;
+  }
+
+  #toast {
+    top: 118px;
+    font-size: 18px;
+    max-width: 90vw;
+    white-space: normal;
+    text-align: center;
+  }
+
+  #coffee-modal {
+    padding: 20px 18px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  body.game-playing #hud-cashout {
+    display: none !important;
+  }
+}
+
+@media (min-width: 721px) {
+  #controls-dock {
+    display: none !important;
+  }
+
+  body.game-playing #hud-cashout {
+    display: flex !important;
+  }
+}

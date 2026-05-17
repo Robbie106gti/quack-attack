@@ -1,0 +1,129 @@
+body.scan-active::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-fx);
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(28, 232, 192, 0.03) 2px,
+    rgba(28, 232, 192, 0.03) 4px
+  );
+  animation: scanline 0.12s linear infinite;
+}
+
+@keyframes scanline {
+  to {
+    background-position: 0 4px;
+  }
+}
+
+body.timer-urgent #hud {
+  animation: hud-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes hud-pulse {
+  50% {
+    border-bottom-color: rgba(255, 51, 71, 0.45);
+  }
+}
+
+body.deal-flash::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(245, 200, 66, 0.12);
+  pointer-events: none;
+  z-index: var(--z-deal);
+  animation: deal 0.4s ease-out forwards;
+}
+
+@keyframes deal {
+  to {
+    opacity: 0;
+  }
+}
+
+body.rim-pulse #hud {
+  box-shadow: 0 0 24px rgba(245, 200, 66, 0.25);
+}
+
+#vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-fx);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+#vignette.show.mine {
+  opacity: 1;
+  box-shadow: inset 0 0 160px 60px rgba(255, 80, 40, 0.75);
+}
+
+#vignette.show.win {
+  opacity: 1;
+  box-shadow: inset 0 0 100px 30px rgba(245, 200, 66, 0.35);
+}
+
+#vignette.show.jackpot {
+  opacity: 1;
+  box-shadow: inset 0 0 140px 50px rgba(245, 200, 66, 0.5);
+}
+
+body.mine-shake canvas {
+  animation: mine-shake 0.45s ease-out;
+}
+
+@keyframes mine-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  15% {
+    transform: translate(-6px, 4px) rotate(-0.4deg);
+  }
+  30% {
+    transform: translate(8px, -3px) rotate(0.5deg);
+  }
+  45% {
+    transform: translate(-5px, -5px);
+  }
+  60% {
+    transform: translate(6px, 2px) rotate(-0.3deg);
+  }
+  75% {
+    transform: translate(-3px, 4px);
+  }
+}
+
+#mine-boom {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: min(22vw, 120px);
+  font-weight: 400;
+  color: var(--red);
+  letter-spacing: 0.06em;
+  pointer-events: none;
+  z-index: var(--z-mine-boom);
+  opacity: 0;
+  transform: scale(0.3) rotate(-8deg);
+  text-shadow:
+    0 0 40px rgba(255, 80, 40, 0.9),
+    0 4px 0 var(--gold);
+  transition:
+    opacity 0.08s,
+    transform 0.12s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+#mine-boom.show {
+  opacity: 1;
+  transform: scale(1) rotate(3deg);
+}
