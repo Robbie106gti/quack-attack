@@ -18,6 +18,7 @@
   <div id="timer-label">Clock</div>
   <div id="timer-val">60</div>
   <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+  <div id="trap-radar" role="status" aria-live="polite" title="Live traps in the four neighboring tiles">Adjacent traps: 0</div>
 </div>
 
 <div id="big-count"></div>
@@ -99,13 +100,13 @@
 <div id="controls-dock">
   <div id="dpad">
   <div class="dpad-empty"></div>
-  <div class="dpad-btn" data-dir="up">▲</div>
+  <button type="button" class="dpad-btn" data-dir="up" aria-label="Move up">▲</button>
   <div class="dpad-empty"></div>
-  <div class="dpad-btn" data-dir="left">◀</div>
+  <button type="button" class="dpad-btn" data-dir="left" aria-label="Move left">◀</button>
   <div class="dpad-empty"></div>
-  <div class="dpad-btn" data-dir="right">▶</div>
+  <button type="button" class="dpad-btn" data-dir="right" aria-label="Move right">▶</button>
   <div class="dpad-empty"></div>
-    <div class="dpad-btn" data-dir="down">▼</div>
+    <button type="button" class="dpad-btn" data-dir="down" aria-label="Move down">▼</button>
     <div class="dpad-empty"></div>
   </div>
   <button type="button" id="cashout-btn" class="btn-cashout" aria-label="Cash out and end this hand">

@@ -1,8 +1,32 @@
-import { ROUND_TIME, TABLE_STAKES } from './constants.js';
+import { ROUND_TIME, TABLE_STAKES, TILE } from './constants.js';
 import type { TableRisk } from './types.js';
 import { $ } from './dom.js';
 import { state } from './state.js';
-import { formatMoney } from './helpers.js';
+import { formatMoney, ADJACENT, inBounds } from './helpers.js';
+
+function personalBest(score = 0): number {
+  try {
+    const key = 'quack-attack:best:' + state.tableRisk;
+    const saved = Number(localStorage.getItem(key));
+    const best = Math.max(Number.isSafeInteger(saved) && saved >= 0 ? saved : 0, score);
+    if (score > 0) localStorage.setItem(key, String(best));
+    return best;
+  } catch {
+    return score;
+  }
+}
+
+export function updateRadar(): void {
+  if (!state.grid.length || state.duckMoving) return;
+  const { col, row } = state.duckPos;
+  const count = ADJACENT.filter(([dc, dr]) =>
+    inBounds(col + dc, row + dr) && state.grid[row + dr][col + dc] === TILE.MINE
+  ).length;
+  const radar = $('trap-radar');
+  const label = 'Adjacent traps: ' + count;
+  if (radar.textContent !== label) radar.textContent = label;
+  radar.classList.toggle('danger', count > 0);
+}
 
 const CASHOUT_IDS = ['cashout-btn', 'hud-cashout'] as const;
 
@@ -18,8 +42,9 @@ function renderStatRows(stats: EndStats): string {
   const rows: [string, string][] = [
     ['Cash out', formatMoney(stats.coins)],
     ['Hands played', String(stats.round)],
-    ['Best hot streak', '×' + stats.multiplier],
+    ['Final hot streak', '×' + stats.multiplier],
     ['Buy-ins left', String(stats.lives)],
+    ['Personal best · ' + TABLE_STAKES[state.tableRisk].label, formatMoney(personalBest(stats.coins))],
   ];
   return rows
     .map(

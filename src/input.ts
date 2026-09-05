@@ -25,6 +25,34 @@ const KEY_MAP: Record<string, Direction | undefined> = {
   KeyD: 'right',
 };
 
+const heldKeys = new Map<string, Direction>();
+let pointerDirection: Direction | null = null;
+let repeatIn = 0;
+
+function clearMovement(): void {
+  heldKeys.clear();
+  pointerDirection = null;
+  state.queuedDirection = null;
+  repeatIn = 0;
+}
+
+export function updateMovement(dt: number): void {
+  if (state.gameState !== 'playing' || state.cashingOut || state.deathAnim || state.mineKaboom || document.hidden) {
+    clearMovement();
+    return;
+  }
+  repeatIn = Math.max(0, repeatIn - dt);
+  if (state.duckMoving) return;
+  const queued = state.queuedDirection;
+  state.queuedDirection = null;
+  const directions = [...heldKeys.values()];
+  const held = pointerDirection ?? directions[directions.length - 1];
+  if (queued || (held && repeatIn === 0)) {
+    tryMove(queued ?? held!);
+    repeatIn = 0.16;
+  }
+}
+
 export function updateCashOutButtons(): void {
   setCashOutEnabled(canCashOut());
 }
@@ -35,6 +63,8 @@ function bindCashOutButtons(): void {
 }
 
 function onPlay(): void {
+  if (!state.duck) return;
+  clearMovement();
   hideOverlay();
   if (state.gameState === 'dead' || state.gameState === 'win') {
     state.lives = 3;
@@ -66,15 +96,33 @@ export function bindInput(): void {
     const dir = KEY_MAP[e.code];
     if (dir) {
       e.preventDefault();
+      if (e.repeat) return;
+      heldKeys.set(e.code, dir);
       tryMove(dir);
+      repeatIn = 0.16;
     }
   });
+
+  window.addEventListener('keyup', (e) => heldKeys.delete(e.code));
+  window.addEventListener('blur', clearMovement);
+  document.addEventListener('visibilitychange', clearMovement);
 
   document.querySelectorAll('.dpad-btn').forEach((btn) => {
     btn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       const dir = (btn as HTMLElement).dataset.dir;
-      if (isDirection(dir)) tryMove(dir);
+      if (isDirection(dir)) {
+        (btn as HTMLElement).setPointerCapture((e as PointerEvent).pointerId);
+        pointerDirection = dir;
+        tryMove(dir);
+        repeatIn = 0.16;
+      }
+    });
+    btn.addEventListener('lostpointercapture', () => { pointerDirection = null; });
+    btn.addEventListener('pointercancel', clearMovement);
+    btn.addEventListener('click', (e) => {
+      const dir = (btn as HTMLElement).dataset.dir;
+      if ((e as MouseEvent).detail === 0 && isDirection(dir)) tryMove(dir);
     });
   });
 

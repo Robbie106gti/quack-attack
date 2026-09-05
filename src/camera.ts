@@ -72,7 +72,7 @@ export function updateCamera(camera: PerspectiveCamera): void {
   camera.lookAt(state.CAM_TARGET);
 }
 
-/** Track duck on mobile; ~7 tiles wide, taller window in portrait. */
+/** Leave perspective margin around edge tiles on mobile. */
 export function updateFollowCamera(
   camera: PerspectiveCamera,
   duckX: number,

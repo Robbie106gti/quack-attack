@@ -93,7 +93,7 @@
   }
 }
 
-@media (min-width: 721px) {
+@media (min-width: 721px) and (min-height: 721px) {
   #controls-dock {
     display: none !important;
   }

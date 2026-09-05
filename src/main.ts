@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { state } from './state.js';
 import { loadDuck, updateDuck } from './duck.js';
 import { landOn } from './game.js';
-import { showTitleOverlay } from './hud.js';
+import { showTitleOverlay, updateRadar } from './hud.js';
 import { updateFx, applyScreenShake } from './fx.js';
 import { updateActiveCamera, updateCamera } from './camera.js';
 import { updateTimer } from './timer.js';
@@ -13,7 +13,7 @@ import {
   updateSceneLights,
   animatePickups,
 } from './scene-setup.js';
-import { bindInput, updateCashOutButtons } from './input.js';
+import { bindInput, updateCashOutButtons, updateMovement } from './input.js';
 
 const { scene } = state;
 const renderer = createRenderer();
@@ -44,7 +44,9 @@ function animate(): void {
 
   const landed = updateDuck(dt, t);
   if (landed) landOn(state.duckPos.col, state.duckPos.row);
+  updateMovement(dt);
   updateCashOutButtons();
+  updateRadar();
 
   const duckX = state.duck.position.x;
   const duckZ = state.duck.position.z;

@@ -106,6 +106,17 @@ body.game-playing #hud-cashout {
   text-transform: uppercase;
 }
 
+#trap-radar {
+  font-size: 11px;
+  color: var(--teal);
+  margin-top: 5px;
+  min-width: 110px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#trap-radar.danger { color: var(--gold); }
+
 #timer-val {
   font-size: 28px;
   font-weight: 700;

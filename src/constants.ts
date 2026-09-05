@@ -7,7 +7,7 @@ export const TILE_GAP = 0.08;
 export const STEP = TILE_SIZE + TILE_GAP;
 
 /** Mobile follow-cam: visible tile span (height grows in portrait, capped at ROWS). */
-export const FOLLOW_TILES_W = 7;
+export const FOLLOW_TILES_W = 11;
 export const FOLLOW_CAM_SMOOTH = 14;
 
 export const ROUND_TIME = 60;

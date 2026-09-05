@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .vite/
+.playwright-cli/
+output/playwright/
 
 # Build and Release Folders
 bin-debug/

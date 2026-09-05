@@ -44,6 +44,8 @@
 }
 
 .dpad-btn {
+  touch-action: none;
+  padding: 0;
   background: radial-gradient(circle at 35% 30%, rgba(60, 50, 30, 0.5), rgba(20, 18, 40, 0.9));
   border: 1px solid rgba(245, 200, 66, 0.45);
   color: var(--gold);
@@ -61,6 +63,11 @@
     box-shadow 0.1s,
     transform 0.08s;
   -webkit-tap-highlight-color: transparent;
+}
+
+.dpad-btn:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
 }
 
 .dpad-btn:hover {

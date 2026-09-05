@@ -57,6 +57,7 @@ function canAct(): boolean {
     state.gameState === 'playing' &&
     !state.duckMoving &&
     !state.deathAnim &&
+    !state.mineKaboom &&
     !state.cashingOut &&
     !!state.duck
   );
@@ -92,6 +93,7 @@ function resetHandPowerUps(): void {
 }
 
 function resetHandFlags(): void {
+  state.queuedDirection = null;
   state.duckMoving = false;
   state.bouncing = false;
   state.bounceT = 0;
@@ -230,7 +232,7 @@ export function startRound(): void {
 
   if (state.roundIdx === 0) {
     setTimeout(
-      () => showToast('📡 Surveillance: traps are hidden — watch for red flashes!', C.teal),
+      () => { if (state.gameState === 'playing' && !state.cashingOut) showToast('📡 Surveillance online', C.teal); },
       900
     );
   }
@@ -254,13 +256,15 @@ export function nextRound(): void {
 }
 
 export function endTimeout(): void {
-  showBusted('timeout', 0);
+  state.gameState = 'dead';
+  state.queuedDirection = null;
   showEndOverlay('⏰ TABLE CLOSED', endStats('timeout'), 'Rebuy');
 }
 
 export function performCashOut(fromCol: number, fromRow: number): void {
   if (state.gameState !== 'playing' || state.cashingOut) return;
   state.cashingOut = true;
+  state.queuedDirection = null;
   state.duckMoving = false;
 
   const atCage = fromCol === state.exitCol && fromRow === state.exitRow;
@@ -280,7 +284,6 @@ export function performCashOut(fromCol: number, fromRow: number): void {
     C.gold
   );
   setTimeout(() => {
-    state.cashingOut = false;
     nextRound();
   }, 900);
 }
@@ -292,6 +295,11 @@ export function cashOut(): void {
 
 export function tryMove(dir: Direction): void {
   const duck = state.duck;
+  if (state.gameState !== 'playing' || state.deathAnim || state.cashingOut || state.mineKaboom) return;
+  if (state.duckMoving) {
+    state.queuedDirection = dir;
+    return;
+  }
   if (!canAct() || !duck) return;
   const [dc, dr] = DIR_D[dir];
   const nc = state.duckPos.col + dc;
@@ -342,6 +350,7 @@ export function landOn(col: number, row: number): void {
 
 /** Lose one buy-in; optional instant bust without duck death animation. */
 export function loseBuyIn(withDeathAnim = true): void {
+  state.queuedDirection = null;
   state.lives = Math.max(0, state.lives - 1);
   state.coinStreak = 0;
   updateHUD();

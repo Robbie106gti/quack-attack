@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type {
   CoinObject,
   GameState,
+  Direction,
   PickupObject,
   ShopId,
   TableRisk,
@@ -29,6 +30,7 @@ export const state = {
   duckTargetWorld: new THREE.Vector3(),
   duckCurrentWorld: new THREE.Vector3(),
   duckMoving: false,
+  queuedDirection: null as Direction | null,
   duckFacing: 0,
   bouncing: false,
   bounceT: 0,

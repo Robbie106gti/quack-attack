@@ -29,15 +29,17 @@ function tickPowerUps(dt: number): void {
 }
 
 export function updateTimer(dt: number, t: number): void {
-  if (state.gameState !== 'playing') return;
+  if (state.gameState !== 'playing' || state.cashingOut || document.hidden) return;
 
   state.timeLeft -= dt;
   updateTimerHUD();
 
-  if (!state.coffeeTriggered && state.timeLeft <= COFFEE_TIME) {
+  if (!state.coffeeTriggered && state.timeLeft > 0 && state.timeLeft <= COFFEE_TIME && !state.duckMoving && !state.deathAnim && !state.mineKaboom) {
     state.coffeeTriggered = true;
     showToast('☕ Pit boss — lounge break!', C.gold);
-    setTimeout(openCoffee, 300);
+    state.queuedDirection = null;
+    openCoffee();
+    return;
   }
 
   tickPowerUps(dt);
